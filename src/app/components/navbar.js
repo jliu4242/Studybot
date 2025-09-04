@@ -1,12 +1,13 @@
 'use client'
 import { useState } from 'react';
 import Image from "next/image";
+import Link from "next/link";
 
 export default function navigationBar() {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className={`bg-gray-500 min-h-screen transition-all duration-500
+        <div className={`bg-white min-h-screen transition-all duration-500
                         ${isOpen? 'w-60' : 'w-20'}`}>
             <div className='divide-y divide-black space-y-5'>
                 <div className='p-4 flex justify-center items-end'>
@@ -27,10 +28,13 @@ export default function navigationBar() {
                 </div>
 
                 <div className='flex justify-center text-black'>
-                    <a>Upload Notes/Questions</a>
+                    <Link href='/pages/upload'>Upload Notes/Questions</Link>
                 </div>
                 <div className='flex justify-center text-black'>
-                    <a>Generate questions</a>
+                    <Link href='/pages/generate'>Generate questions</Link>
+                </div>
+                <div className='flex justify-center text-black'>
+                    <Link href='/'>home</Link>
                 </div>
             </div>
             
