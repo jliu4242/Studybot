@@ -7,6 +7,13 @@ export default function UploadPage() {
     const [file, setFile] = useState(null);
     const [uploadType, setUploadType] = useState('');
 
+    async function uploadNotes() {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch()
+    }
+
     return (
         <div className='min-h-screen w-screen bg-black'>
             <div className='text-center p-10'>
