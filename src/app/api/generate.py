@@ -1,6 +1,14 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
-from OpenAI import openai
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
+import faiss
+import numpy as np
+
+load_dotenv()
+
+client = OpenAI(os.get("OPENAI_API_KEY"))
 
 app = FastAPI()
 
@@ -18,8 +26,32 @@ def root():
 
 @app.post("/upload-notes/")
 async def upload_notes(file: UploadFile = File(...)):
-    const text = doc_to_text(file)
-    const chunks = split_text(text)
+    chunks = split_text(file)
+    
+    # testing chunks
+    for (String s : chunks) {
+        console.log(s)
+    }
+
+    embeddings = []
+    for chunk in chunks:
+        response = client.embeddings.create(
+            model='text-embedding-3-large',
+            input = chunk
+        )
+
+        vector = np.array(response.data[0].embedding, dtype=float)
+        console.log(vector)
+
+        norm = np.linalg.norm(vector)
+        normalized_vector = vector / norm
+        console.log(normalized_vector)
+
+        embeddings.append(normalized_vector)
+
+
+        
+
 
 @app.post("/generate-Questions/")
 async def generate_questions(String msg):
