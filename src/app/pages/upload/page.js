@@ -11,7 +11,7 @@ export default function UploadPage() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const res = await fetch("http://127.0.0.1:8000/upload-notes/", {
+        const res = await fetch("http://127.0.0.1:8000/upload-notes", {
             method: "POST",
             body: formData,
         });
@@ -51,7 +51,7 @@ export default function UploadPage() {
                     </div>
                     <div>
                         <label className='block text-white mb-2'>Upload</label>
-                        <button>Upload</button>
+                        <button onClick={uploadNotes}>Upload</button>
                     </div>
                 </div>
             </div>

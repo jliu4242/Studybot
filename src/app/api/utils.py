@@ -1,7 +1,13 @@
 from docx import Document
+from io import BytesIO
+from fastapi import UploadFile
 
-def split_text(file):
-    doc = Document(file)
+async def split_text(file: UploadFile):
+
+    content = await file.read()
+    file_like = BytesIO(content)
+
+    doc = Document(file_like)
 
     chunks=[]
     current_chunk=''
