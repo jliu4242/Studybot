@@ -5,8 +5,12 @@ from dotenv import load_dotenv
 import os
 import faiss
 import numpy as np
+from motor.motor_asyncio import AsyncIOMotorClient
 
 load_dotenv()
+
+db_client = AsyncIOMotorClient("mongodb+srv://jonliu4242:ciw1ijaxDDwIr1Kj@studybot-cluster.jphx4l9.mongodb.net/?retryWrites=true&w=majority&appName=studybot-cluster")
+db = db_client.StudyBot
 
 client = OpenAI(os.get("OPENAI_API_KEY"))
 
