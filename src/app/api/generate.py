@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from OpenAI import openai
 
 app = FastAPI()
 
@@ -17,5 +18,9 @@ def root():
 
 @app.post("/upload-notes/")
 async def upload_notes(file: UploadFile = File(...)):
-    contents = await file.read()
-    text = contents.decode("utf-8")
+    const text = doc_to_text(file)
+    const chunks = split_text(text)
+
+@app.post("/generate-Questions/")
+async def generate_questions(String msg):
+    

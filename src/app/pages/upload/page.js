@@ -11,7 +11,13 @@ export default function UploadPage() {
         const formData = new FormData();
         formData.append("file", file);
 
-        const res = await fetch()
+        const res = await fetch("http://127.0.0.1:8000/upload-notes/", {
+            method: "POST",
+            body: formData,
+        });
+
+        const data = await res.json();
+        console.log(data)
     }
 
     return (
