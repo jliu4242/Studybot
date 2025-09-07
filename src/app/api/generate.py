@@ -11,6 +11,7 @@ load_dotenv()
 
 db_client = AsyncIOMotorClient("mongodb+srv://jonliu4242:ciw1ijaxDDwIr1Kj@studybot-cluster.jphx4l9.mongodb.net/?retryWrites=true&w=majority&appName=studybot-cluster")
 db = db_client.StudyBot
+notes = db.notes
 
 client = OpenAI(os.get("OPENAI_API_KEY"))
 
@@ -37,8 +38,8 @@ async def upload_notes(file: UploadFile = File(...)):
         console.log(s)
     }
 
-    embeddings = []
-    for chunk in chunks:
+
+    for idx, chunk in chunks:
         response = client.embeddings.create(
             model='text-embedding-3-large',
             input = chunk
@@ -51,7 +52,11 @@ async def upload_notes(file: UploadFile = File(...)):
         normalized_vector = vector / norm
         console.log(normalized_vector)
 
-        embeddings.append(normalized_vector)
+        notes.insert_one({
+            "chunk_id" idx,
+            "text": chunk,
+            "embedding": normalized_vector.tolist()
+        })
 
 
         
