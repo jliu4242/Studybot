@@ -59,4 +59,9 @@ async def upload_notes(file: UploadFile = File(...)):
         })
     
     print('finished')
+
+@app.post("/generate-questions")
+async def generate_questions() {
+    
+}
     

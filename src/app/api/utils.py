@@ -1,6 +1,7 @@
 from docx import Document
 from io import BytesIO
 from fastapi import UploadFile
+import mammoth 
 
 async def split_text(file: UploadFile):
 
