@@ -76,7 +76,8 @@ async def generate_questions(text: str = Body(...)):
     normalized_vector = vector / norm
     print(normalized_vector)
 
-    vectors = [doc["embedding"] for doc in collection.find({})]
+    docs = await notes.find({}).to_list(length=None)
+    vectors = [doc["embedding"] for doc in docs]
 
     scores = []
     # Calculating cosine similarity
@@ -86,7 +87,7 @@ async def generate_questions(text: str = Body(...)):
         scores.append(res)
 
     best_index = np.argmax(scores)
-    context_text = documents[best_index]["text"]
+    context_text = notes[best_index]["text"]
 
     prompt = f""" You are a helpful tutor that creates questions to help students learn. Based only on the following text, generate 5 questions.
 
