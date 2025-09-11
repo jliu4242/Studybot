@@ -12,20 +12,21 @@ async def split_notes(file: UploadFile):
     path = []
 
     for node in parsed_html.find_all(["ul", "ol"], recursive=False):
-        leaves.extend(await extract_leaves(node, path))
+        leaves.extend(extract_leaves(node, path))
 
     return leaves
 
 async def parse_docx(file: UploadFile):
     content = await file.read()
+    parsed_content = BytesIO(content)
 
-    result = mammoth.convert_to_html(content)
+    result = mammoth.convert_to_html(parsed_content)
     html = result.value
 
     parsed_html = BeautifulSoup(html, 'html.parser')
     return parsed_html
 
-async def extract_leaves(node, path=None):
+def extract_leaves(node, path=None):
     if path is None:
         path=[]
     leaves = []

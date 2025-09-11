@@ -10,8 +10,8 @@ from utils import split_notes
 load_dotenv()
 
 db_client = AsyncIOMotorClient(os.getenv("MONGODB"))
-db = db_client.StudyBot
-notes = db.notes
+db = db_client["StudyBot"]
+notes = db["notes"]
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
