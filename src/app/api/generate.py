@@ -60,12 +60,12 @@ async def upload_notes(file: UploadFile = File(...)):
 async def generate_questions(text: str = Body(...)):
     print('connected: ' + text)
 
-    response = client.embeddings.create(
+    embed = client.embeddings.create(
         model='text-embedding-3-large',
         input=text
     )
 
-    vector = np.array(response.data[0].embedding, dtype=float)
+    vector = np.array(embed.data[0].embedding, dtype=float)
     print(vector)
     
     norm = np.linalg.norm(vector)
@@ -83,17 +83,20 @@ async def generate_questions(text: str = Body(...)):
         scores.append(res)
 
     best_index = np.argmax(scores)
-    context_text = notes[best_index]["text"]
+    best_index = int(best_index)
+    
+    doc = await notes.find_one({"chunk_id": best_index})
+    context_text = doc["text"]
 
-    prompt = f""" You are a helpful tutor that creates questions to help students learn. Based only on the following text, generate 5 questions.
+    prompt = f""" You are a helpful tutor that creates questions to help students learn. Based only on the following notes, generate 3 questions.
 
-    Text:
+    Notes:
     \"\"\"{context_text}\"\"\"
 
     Questions:
     """
 
-    reponse = client.chat.completions.create(
+    response = client.chat.completions.create(
         model='gpt-3.5-turbo',
         messages=[
             {'role': 'system', 'content': 'You are a tutor who creates test questions'},
@@ -101,5 +104,5 @@ async def generate_questions(text: str = Body(...)):
         ]
     )
 
-    print (response.choices[0].message.contet)
+    print (response.choices[0].message.content)
     
