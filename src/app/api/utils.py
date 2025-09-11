@@ -2,26 +2,49 @@ from docx import Document
 from io import BytesIO
 from fastapi import UploadFile
 import mammoth 
+from bs4 import BeautifulSoup
 
-async def split_text(file: UploadFile):
+async def split_notes(file: UploadFile):
 
+    parsed_html = await parse_docx(file)
+
+    leaves = []
+    path = []
+
+    for node in parsed_html.find_all(["ul", "ol"], recursive=False):
+        leaves.extend(await extract_leaves(node, path))
+
+    return leaves
+
+async def parse_docx(file: UploadFile):
     content = await file.read()
-    file_like = BytesIO(content)
 
-    doc = Document(file_like)
+    result = mammoth.convert_to_html(content)
+    html = result.value
 
-    chunks=[]
-    current_chunk=''
+    parsed_html = BeautifulSoup(html, 'html.parser')
+    return parsed_html
 
-    for para in doc.paragraphs:
-        if para.style.name.startswith("Heading"):
-            if current_chunk:
-                chunks.append(current_chunk.strip())
-            current_chunk = para.text + "\n"
+async def extract_leaves(node, path=None):
+    if path is None:
+        path=[]
+    leaves = []
+
+    for li in node.find_all("li", recursive=False):
+        text = li.get_text(strip=True)
+        current_path = path + [text]
+
+        indented_list = li.find(['ul', 'ol'], recursive=False)
+        if indented_list:
+            leaves.extend(extract_leaves(indented_list, current_path))
         else:
-            current_chunk += para.text + "\n"
-    
-    if current_chunk:
-        chunks.append(current_chunk.strip())
+            leaves.append(" > ".join(current_path))
 
-    return chunks
+    for p in node.find_all('p', recursive=False):
+        text = p.get_text(strip=True)
+
+        if text:
+            current_path = path + [text]
+            leaves.append(" > ".join(current_path))
+
+    return leaves

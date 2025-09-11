@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 import numpy as np
 from motor.motor_asyncio import AsyncIOMotorClient
-from utils import split_text
+from utils import split_notes
 
 load_dotenv()
 
@@ -32,11 +32,7 @@ def root():
 @app.post("/upload-notes")
 async def upload_notes(file: UploadFile = File(...)):
     print('connected')
-    chunks = await split_text(file)
-    
-    # testing chunks
-    for s in chunks :
-        print(s)
+    chunks = await split_notes(file)
 
 
     for idx, chunk in enumerate(chunks):
