@@ -85,16 +85,23 @@ async def generate_questions(text: str = Body(...)):
     best_index = np.argmax(scores)
     best_index = int(best_index)
     
-    doc = await notes.find_one({"chunk_id": best_index})
-    context_text = doc["text"]
+    doc1 = docs[best_index]
+    context_text = doc1["text"]
+    print(context_text)
 
-    prompt = f""" You are a helpful tutor that creates questions to help students learn. Based only on the following notes, generate 3 questions.
+    prompt = f""" You are a helpful tutor that creates questions to help students learn.
+        
+        Rules:
+        - base EVERY question strictly on the Notees below
+        - generate exactly as many questions as the user asks for
+        - make the questions look like test questions. Format them exactly the way an exam would
+        - include the correct answer in a seperate section below.
 
-    Notes:
-    \"\"\"{context_text}\"\"\"
+        Notes:
+        \"\"\"{context_text}\"\"\"
 
-    Questions:
-    """
+        Questions:
+        """
 
     response = client.chat.completions.create(
         model='gpt-3.5-turbo',
@@ -105,4 +112,5 @@ async def generate_questions(text: str = Body(...)):
     )
 
     print (response.choices[0].message.content)
+    return response
     

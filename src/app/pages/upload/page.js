@@ -21,7 +21,7 @@ export default function UploadPage() {
     }
 
     return (
-        <div className='min-h-screen container'>
+        <div className='min-h-screen w-screen bg-black'>
             <div className='text-center p-10 title'>
                 <h2 className='text-3xl text-white'>Upload your notes or example questions</h2>
             </div>

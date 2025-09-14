@@ -11,7 +11,7 @@ async def split_notes(file: UploadFile):
     leaves = []
     path = []
 
-    for node in parsed_html.find_all(["ul", "ol"], recursive=False):
+    for node in parsed_html.find_all(['p', "ul", "ol"], recursive=False):
         leaves.extend(extract_leaves(node, path))
 
     return leaves
@@ -30,7 +30,7 @@ def extract_leaves(node, path=None):
     if path is None:
         path=[]
     leaves = []
-
+        
     for li in node.find_all("li", recursive=False):
         text = li.get_text(strip=True)
         current_path = path + [text]

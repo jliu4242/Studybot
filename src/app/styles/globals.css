@@ -22,11 +22,6 @@ button {
     background-color: #1a1a1a;
 }
 
-.container {
-    background: black;
-    size: screen;
-}
-
 .title {
     font-family: 'Orbitron', monospace;
     font-size: 3.5rem;

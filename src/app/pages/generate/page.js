@@ -6,6 +6,7 @@ import '../../styles/globals.css'
 
 export default function uploadPage() {
     const [prompt, setPrompt] = useState('');
+    const [result, setResult] = useState('');
 
     async function generateQuestions() {
         const res = await fetch("http://127.0.0.1:8000/generate-questions", {
@@ -15,6 +16,8 @@ export default function uploadPage() {
 
         const data = await res.json();
         console.log(data);
+        setResult(data.choices[0].message.content); 
+        console.log(result)
     }
 
     return (
@@ -35,6 +38,10 @@ export default function uploadPage() {
                     <div>
                         <button onClick={generateQuestions}>Generate</button>
                     </div>
+            </div>
+
+            <div className='mx-auto w-full max-w-xl text-left sm-rounded-md p-10 main-card m-10'>
+                <p>{result}</p>
             </div>
         </div>
     )
