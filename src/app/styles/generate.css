@@ -3,4 +3,5 @@ textarea {
     width: 100%;
     background-color: black;
     border-radius: 8px;
+    padding: 5px;
 }
