@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import os
 import numpy as np
 from motor.motor_asyncio import AsyncIOMotorClient
-from utils import split_notes
+from utils import split_notes, pdfToImages, storeNotes, extractTestQuestions
 
 load_dotenv()
 
@@ -58,59 +58,23 @@ async def upload_notes(file: UploadFile = File(...)):
 
 @app.post("/generate-questions")
 async def generate_questions(text: str = Body(...)):
-    print('connected: ' + text)
-
-    embed = client.embeddings.create(
-        model='text-embedding-3-large',
-        input=text
-    )
-
-    vector = np.array(embed.data[0].embedding, dtype=float)
-    print(vector)
-    
-    norm = np.linalg.norm(vector)
-    normalized_vector = vector / norm
-    print(normalized_vector)
-
-    docs = await notes.find({}).to_list(length=None)
-    vectors = [doc["embedding"] for doc in docs]
-
-    scores = []
-    # Calculating cosine similarity
-    for vector in vectors:
-        normalized_vector, vector = np.array(normalized_vector), np.array(vector)
-        res = np.dot(normalized_vector, vector)
-        scores.append(res)
-
-    best_index = np.argmax(scores)
-    best_index = int(best_index)
-    
-    doc1 = docs[best_index]
-    context_text = doc1["text"]
-    print(context_text)
-
-    prompt = f""" You are a helpful tutor that creates questions to help students learn.
+    generateQuestions(text)
         
-        Rules:
-        - base EVERY question strictly on the Notees below
-        - generate exactly as many questions as the user asks for
-        - make the questions look like test questions. Format them exactly the way an exam would
-        - include the correct answer in a seperate section below.
-
-        Notes:
-        \"\"\"{context_text}\"\"\"
-
-        Questions:
-        """
-
+@app.post("/generate-test-questions")
+async def generate_test_questions(file: UploadFile = File(...)):
+    pdfToImages(file)
+    questions = extractTestQuestions()
+    
     response = client.chat.completions.create(
-        model='gpt-3.5-turbo',
+        model = "gpt-3.5-turbo",
         messages=[
-            {'role': 'system', 'content': 'You are a tutor who creates test questions'},
-            {'role': 'user', 'content': prompt}
+            {'role': 'system', 'content': """You are a professor who is making an exam for you class. 
+                                                Given questions from a previous exam, make questions of the same topic and similar difficulty"""},
+            {'role': 'user', 'content': questions}
         ]
     )
-
-    print (response.choices[0].message.content)
-    return response
     
+    print(response.choices[0].message.content)
+
+
+
