@@ -2,6 +2,7 @@ from transformers import AutoProcessor, VisionEncoderDecoderModel
 from PIL import IMAGE
 import torch, os
 import fitz
+from pdf2image import convert_from_path
 
 model_id = "facebook/nougat-base"
 
