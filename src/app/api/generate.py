@@ -60,7 +60,7 @@ async def upload_notes(file: UploadFile = File(...)):
 async def generate_questions(text: str = Body(...)):
     generateQuestions(text)
         
-@app.post("/generate-test-questions")
+@app.post("/generate-exam")
 async def generate_test_questions(file: UploadFile = File(...)):
     pdfToImages(file)
     questions = extractTestQuestions()

@@ -3,6 +3,20 @@ import '../../styles/globals.css'
 import '../../styles/upload.css'
 
 export default function examsPage() {
+    const [file, setFile] = useState(null);
+    const [result, setResult] = useState(null);
+
+    async function generateExam() {
+        const formdata = new FormData();
+        formdata.append('file', file);
+
+        const res = await fetch("http://127.0.0.1:8000/generate-exam", {
+            method: "POST",
+            body: formdata
+        });
+
+        const data = await res.json();
+    }
 
     return (
         <div className='min-h-screen w-screen bg-black'>
