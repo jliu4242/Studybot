@@ -5,3 +5,9 @@ textarea {
     border-radius: 8px;
     padding: 5px;
 }
+
+.caption {
+    margin-top: 3px;
+    font-size: 0.9em;
+    font-family: 'Courier New', Courier, monospace;
+}

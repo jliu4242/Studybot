@@ -25,15 +25,16 @@ export default function UploadPage() {
             <div className='text-center p-10 title'>
                 <h2 className='text-3xl text-white'>Upload your notes or example questions</h2>
             </div>
+            <a href="/auth/login">Login</a>
 
             <div className='mx-auto w-full max-w-xl text-left
                             sm:overflow-hidden sm:rounded-md'>
                 <div className=' px-4 py-5 divide-slate-200/5 sm:p-6 main-card'>
                     <div>
-                        <label className='block text-white mb-2'>Select file</label>
+                        <label className='block text-white mb-2'>Select .docx file</label>
                         <input 
                             type='file' 
-                            accept='.docx,.pdf'
+                            accept='.docx'
                             onChange={(e) => {if (e.target.files && e.target.files.length > 0) {
                                 setFile(e.target.files[0]);
                             }}}

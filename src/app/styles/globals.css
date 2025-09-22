@@ -48,4 +48,5 @@ button {
 
 .nav-icon {
     filter: brightness(0) saturate(100%) invert(80%);
+    padding-bottom: 5px;
 }
