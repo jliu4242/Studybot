@@ -1,8 +1,13 @@
 from docx import Document
 from io import BytesIO
-from fastapi import UploadFile
+from fastapi import UploadFile, Body
 import mammoth 
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
+from openai import OpenAI
+import numpy as np
 
 load_dotenv()
 
@@ -95,7 +100,7 @@ def extractTestQuestions():
     
     return message
    
-def generateQuestions(text: str = Body(...)):        
+async def generateQuestions(text: str = Body(...)):        
     embed = client.embeddings.create(
         model='text-embedding-3-large',
         input=text
@@ -148,4 +153,4 @@ def generateQuestions(text: str = Body(...)):
     )
 
     print (response.choices[0].message.content)
-    return response
+    return response.choices[0].message.content

@@ -4,14 +4,9 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 import numpy as np
-from motor.motor_asyncio import AsyncIOMotorClient
-from utils import split_notes, pdfToImages, storeNotes, extractTestQuestions
+from utils import split_notes, pdfToImages, extractTestQuestions, generateQuestions
 
 load_dotenv()
-
-db_client = AsyncIOMotorClient(os.getenv("MONGODB"))
-db = db_client["StudyBot"]
-notes = db["notes"]
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -58,7 +53,9 @@ async def upload_notes(file: UploadFile = File(...)):
 
 @app.post("/generate-questions")
 async def generate_questions(text: str = Body(...)):
-    generateQuestions(text)
+    questionsStr = await generateQuestions(text)
+    
+    return {"res": questionsStr}
         
 @app.post("/generate-exam")
 async def generate_test_questions(file: UploadFile = File(...)):
@@ -69,8 +66,8 @@ async def generate_test_questions(file: UploadFile = File(...)):
         model = "gpt-3.5-turbo",
         messages=[
             {'role': 'system', 'content': """You are a professor who is making an exam for you class. 
-                                                Given questions from a previous exam, make questions of the same topic and similar difficulty"""},
-            {'role': 'user', 'content': questions}
+                                                Given questions from a previous exam, make exam style questions of the same topic and similar difficulty"""},
+            {'role': 'user', 'content': f"Here are the ${questions}"}
         ]
     )
     

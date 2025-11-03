@@ -17,10 +17,9 @@ export default function uploadPage() {
         });
 
         const data = await res.json();
-        console.log(data);
-        setResult(data.choices[0].message.content); 
+        console.log(data.res);
+        setResult(data.res); 
         setAnswerVisiblity(true);
-        print(result)
     }
 
     return (
@@ -45,7 +44,7 @@ export default function uploadPage() {
 
             {answerVisiblity &&
                 <div className='mx-auto w-full max-w-xl text-left sm-rounded-md p-10 main-card m-10'>
-                <ReactMarkdown>{result}</ReactMarkdown>
+                    {result}
                 </div>
             }
         </div>
