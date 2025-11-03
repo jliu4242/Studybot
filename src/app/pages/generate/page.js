@@ -43,7 +43,7 @@ export default function uploadPage() {
             </div>
 
             {answerVisiblity &&
-                <div className='mx-auto w-full max-w-xl text-left sm-rounded-md p-10 main-card m-10'>
+                <div className='mx-auto w-full max-w-xl text-left sm-rounded-md p-10 main-card m-10 whitespace-pre-wrap leading-relaxed'>
                     {result}
                 </div>
             }
