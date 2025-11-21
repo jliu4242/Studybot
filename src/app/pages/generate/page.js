@@ -22,6 +22,10 @@ export default function uploadPage() {
         setAnswerVisiblity(true);
     }
 
+    async function handleSave() {
+        // do something
+    }
+
     return (
         <div className='min-h-screen w-screen bg-black'>
             <div className='text-center p-10 title'>
@@ -43,8 +47,13 @@ export default function uploadPage() {
             </div>
 
             {answerVisiblity &&
-                <div className='mx-auto w-full max-w-xl text-left sm-rounded-md p-10 main-card m-10 whitespace-pre-wrap leading-relaxed'>
-                    {result}
+                <div className='mx-auto w-full max-w-xl text-left sm-rounded-md p-10 main-card m-10 items-center'>
+                    <div className='whitespace-pre-wrap leading-relaxed'>
+                        {result}
+                    </div>
+                    <button className='flex w-20' onClick={handleSave}>
+                        Save
+                    </button>
                 </div>
             }
         </div>

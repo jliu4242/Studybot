@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# StudyBot
+AI-powered question generator from notes and past exams.
 
-## Getting Started
+## Overview
+StudyBot is an intelligent study assistant that transforms your **notes** and **exam files** into relevant, high-quality practice questions.
 
-First, run the development server:
+- **Notes Mode:** Generates questions only from the uploaded notes.
+- **Exam Mode:** Generates new questions that match the *style, difficulty, and concepts* of your past exams.
+- No hallucinated or irrelevant topics — all questions come strictly from your content.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Smart Question Generation
+- Concept-preserving question generation.
+- Exam-style mimicry.
+- Strictly grounded in the provided files.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### File Upload System
+- Upload notes, PDFs, or exam files.
+- Automatic text extraction and preprocessing.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Modern UI
+- Built with **Next.js**.
+- Clean UX for uploading files and previewing generated question sets.
 
-## Learn More
+### Backend Intelligence
+- **FastAPI** backend handles parsing, LLM calls, and generation logic.
+- Modular design for future improvemen
 
-To learn more about Next.js, take a look at the following resources:
+### Database Integration
+- **MongoDB** stores extracted text, generated questions, and metadata.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Authentication (Planned)
+- Auth0 integration coming soon.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech Stack
 
-## Deploy on Vercel
+### Frontend
+- Next.js  
+- React  
+- TailwindCSS (optional)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Backend
+- FastAPI (Python)  
+- Document parser  
+- LLM-based question generator
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Database
+- MongoDB
+
+### Authentication (Coming Soon)
+- Auth0 for login and user profiles

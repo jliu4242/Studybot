@@ -1,10 +1,12 @@
 'use client'
-import '../../styles/globals.css'
-import '../../styles/upload.css'
+import { useState } from 'react';
+import '../../styles/globals.css';
+import '../../styles/upload.css';
 
 export default function examsPage() {
     const [file, setFile] = useState(null);
     const [result, setResult] = useState(null);
+    const [answerVisiblity, setAnswerVisiblity] = useState(false);
 
     async function generateExam() {
         const formdata = new FormData();
@@ -41,9 +43,14 @@ export default function examsPage() {
                 </div>
 
                 <div>
-                    <button onClick=''>Generate</button>
+                    <button onClick={generateExam}>Generate</button>
                 </div>
             </div>
+
+            {answerVisiblity &&  
+                <div>
+                </div>
+            }
         </div>
     )
 }
