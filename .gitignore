@@ -20,6 +20,13 @@
 # production
 /build
 
+# monorepo
+/frontend/.next/
+/frontend/node_modules/
+/backend/.venv/
+/backend/app/__pycache__/
+/backend/app/pages/*.jpg
+
 # misc
 .DS_Store
 *.pem

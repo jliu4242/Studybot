@@ -2,51 +2,39 @@
 AI-powered question generator from notes and past exams.
 
 ## Overview
-StudyBot is an intelligent study assistant that transforms your **notes** and **exam files** into relevant, high-quality practice questions.
+StudyBot turns your notes and past exams into relevant, exam-style practice questions. Notes mode grounds questions strictly in uploaded notes, and exam mode mimics the style and difficulty of prior exams.
 
-- **Notes Mode:** Generates questions only from the uploaded notes.
-- **Exam Mode:** Generates new questions that match the *style, difficulty, and concepts* of your past exams.
-- No hallucinated or irrelevant topics — all questions come strictly from your content.
+## Project Structure
+- `frontend/` – Next.js app (UI, components, styling, Auth0 middleware, env config).
+- `backend/` – FastAPI service (LLM utilities, parsing helpers, model assets, env config).
+- `node_modules/` and `.next/` at the repo root are legacy artifacts; rebuild inside `frontend/` after installs.
+
+## Running the Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Add frontend secrets to `frontend/.env.local`.
+
+## Running the Backend
+```bash
+cd backend
+python -m venv .venv
+.\\.venv\\Scripts\\activate
+pip install -r requirements.txt
+uvicorn app.generate:app --reload --host 0.0.0.0 --port 8000
+```
+Backend secrets live in `backend/app/.env`. The frontend continues calling `http://127.0.0.1:8000` for APIs, so keep the backend listening on that port.
 
 ## Features
-
-### Smart Question Generation
-- Concept-preserving question generation.
-- Exam-style mimicry.
-- Strictly grounded in the provided files.
-
-### File Upload System
-- Upload notes, PDFs, or exam files.
-- Automatic text extraction and preprocessing.
-
-### Modern UI
-- Built with **Next.js**.
-- Clean UX for uploading files and previewing generated question sets.
-
-### Backend Intelligence
-- **FastAPI** backend handles parsing, LLM calls, and generation logic.
-- Modular design for future improvemen
-
-### Database Integration
-- **MongoDB** stores extracted text, generated questions, and metadata.
-
-### Authentication (Planned)
-- Auth0 integration coming soon.
+- Concept-preserving question generation grounded in uploaded content.
+- Exam-style mimicry for practice tests.
+- File uploads for notes, PDFs, and exams.
+- Modern UI built with Next.js.
+- FastAPI backend orchestrating parsing, LLM calls, and persistence.
 
 ## Tech Stack
-
-### Frontend
-- Next.js  
-- React  
-- TailwindCSS (optional)
-
-### Backend
-- FastAPI (Python)  
-- Document parser  
-- LLM-based question generator
-
-### Database
-- MongoDB
-
-### Authentication (Coming Soon)
-- Auth0 for login and user profiles
+- **Frontend:** Next.js, React, TailwindCSS (optional)
+- **Backend:** FastAPI (Python), document parsing, LLM-based generation
+- **Database:** MongoDB

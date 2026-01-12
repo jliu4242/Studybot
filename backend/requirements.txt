@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+openai
+numpy
+motor
+beautifulsoup4
+mammoth
+python-docx
+pdf2image
+pillow
+pymupdf
+transformers
+torch

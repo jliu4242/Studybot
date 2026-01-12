@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "noEmitOnError": false,
+    "declaration": false,
+    "emitDeclarationOnly": false,
+    "allowJs": false,
+    "outDir": "./jsbuild"
+  },
+  "include": ["src/**/*"]
+}
