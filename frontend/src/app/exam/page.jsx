@@ -7,12 +7,28 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Upload, Sparkles, Bookmark, X, ChevronRight } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+function parseQuestionsText(text) {
+  if (!text) return [];
+  return text
+    .split(/\n{2,}/)
+    .map((q) => q.trim())
+    .filter(Boolean)
+    .map((q, idx) => ({
+      id: idx + 1,
+      preview: q.slice(0, 120) + (q.length > 120 ? "..." : ""),
+      text: q,
+    }));
+}
+
 export default function ExamPage() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [generatedQuestions, setGeneratedQuestions] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedQuestion, setExpandedQuestion] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState("");
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files || []);
@@ -41,27 +57,33 @@ export default function ExamPage() {
   };
 
   const handleGenerateQuestions = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setGeneratedQuestions([
-        {
-          id: 1,
-          preview: "A researcher is studying the effects of temperature on enzyme...",
-          text: "A researcher is studying the effects of temperature on enzyme activity. Design an experiment to test how temperature affects the rate of catalase breaking down hydrogen peroxide. Include controls and identify independent and dependent variables. Explain how you would measure the reaction rate and what results you would expect.",
-        },
-        {
-          id: 2,
-          preview: "Compare and contrast prokaryotic and eukaryotic cells...",
-          text: "Compare and contrast prokaryotic and eukaryotic cells. Your answer should include at least three structural differences and explain the functional significance of each. Additionally, discuss the evolutionary implications of these differences and provide specific examples of organisms from each group.",
-        },
-        {
-          id: 3,
-          preview: "A plant cell is placed in a hypertonic solution...",
-          text: "A plant cell is placed in a hypertonic solution. Predict what will happen to the cell and explain your reasoning using the concepts of osmosis and water potential. Describe the changes you would observe under a microscope and explain why plant cells respond differently than animal cells in this situation.",
-        },
-      ]);
-      setIsGenerating(false);
-    }, 1500);
+    const run = async () => {
+      if (!uploadedFiles.length) {
+        setError("Please upload at least one exam PDF.");
+        return;
+      }
+      setError("");
+      setIsGenerating(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", uploadedFiles[0]);
+        const res = await fetch(`${API_BASE}/exams/generate`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          throw new Error(`Generation failed: ${res.status} ${await res.text()}`);
+        }
+        const data = await res.json();
+        setGeneratedQuestions(parseQuestionsText(data.res));
+        setExpandedQuestion(null);
+      } catch (err) {
+        setError(err.message || "Something went wrong generating exam questions.");
+      } finally {
+        setIsGenerating(false);
+      }
+    };
+    run();
   };
 
   const handleToggleQuestion = (questionId) => {
@@ -106,6 +128,11 @@ export default function ExamPage() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Upload past exams to generate similar questions
             </p>
+            {error && (
+              <p className="text-sm text-red-600 mt-2" data-testid="text-error">
+                {error}
+              </p>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-4">

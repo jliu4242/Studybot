@@ -3,6 +3,7 @@ uvicorn[standard]
 python-multipart
 python-dotenv
 openai
+httpx<0.28
 numpy
 motor
 beautifulsoup4
@@ -11,5 +12,6 @@ python-docx
 pdf2image
 pillow
 pymupdf
+transformers
 transformers
 torch

@@ -1,11 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Upload, Sparkles, Bookmark, X, ChevronRight } from "lucide-react";
+import { ArrowLeft, Upload, Sparkles, Bookmark, X, ChevronRight, Loader2 } from "lucide-react";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+function parseQuestionsText(text) {
+  if (!text) return [];
+  return text
+    .split(/\n{2,}/)
+    .map((q) => q.trim())
+    .filter(Boolean)
+    .map((q, idx) => ({
+      id: idx + 1,
+      preview: q.slice(0, 120) + (q.length > 120 ? "..." : ""),
+      text: q,
+    }));
+}
 
 export default function NotesPage() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
@@ -13,10 +29,74 @@ export default function NotesPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [expandedQuestion, setExpandedQuestion] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const router = useRouter();
+
+  const cleanupEmbeddings = useCallback(async () => {
+    const url = `${API_BASE}/notes/clear`;
+    try {
+      await fetch(url, { method: "POST" });
+    } catch {
+      // ignore cleanup errors
+    }
+  }, []);
+
+  const handleBack = async () => {
+    await cleanupEmbeddings();
+    router.push("/");
+  };
+
+  const uploadFileToBackend = async (item) => {
+    console.log("[upload] start", { name: item.file.name, size: item.file.size });
+    setUploadedFiles((prev) =>
+      prev.map((f) => (f.id === item.id ? { ...f, status: "uploading", error: "" } : f))
+    );
+
+    try {
+      const formData = new FormData();
+      formData.append("file", item.file);
+      console.log("1");
+      const res = await fetch(`${API_BASE}/notes/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      console.log("[upload] response", { name: item.file.name, status: res.status });
+      if (!res.ok) {
+        const body = await res.text();
+        console.error("[upload] non-200", { status: res.status, body });
+        throw new Error(body || `Upload failed (${res.status})`);
+      }
+      setUploadedFiles((prev) =>
+        prev.map((f) => (f.id === item.id ? { ...f, status: "uploaded" } : f))
+      );
+    } catch (err) {
+      console.error("[upload] failed", err);
+      setUploadedFiles((prev) =>
+        prev.map((f) =>
+          f.id === item.id ? { ...f, status: "error", error: err.message || "Upload failed" } : f
+        )
+      );
+      setError(err.message || "Upload failed");
+    }
+  };
+
+  const enqueueFiles = (files) => {
+    console.log("[enqueue] files", files.map((f) => ({ name: f.name, size: f.size })));
+    const newItems = files.map((file) => ({
+      id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2, 8)}`,
+      file,
+      status: "uploading",
+      error: "",
+    }));
+    setUploadedFiles((prev) => [...prev, ...newItems]);
+    newItems.forEach(uploadFileToBackend);
+  };
 
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files || []);
-    setUploadedFiles([...uploadedFiles, ...files]);
+    if (!files.length) return;
+    enqueueFiles(files);
   };
 
   const handleDragOver = (e) => {
@@ -33,7 +113,8 @@ export default function NotesPage() {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files || []);
-    setUploadedFiles([...uploadedFiles, ...files]);
+    if (!files.length) return;
+    enqueueFiles(files);
   };
 
   const handleRemoveFile = (index) => {
@@ -41,32 +122,43 @@ export default function NotesPage() {
   };
 
   const handleGenerateQuestions = () => {
-    setIsGenerating(true);
-    setTimeout(() => {
-      setGeneratedQuestions([
-        {
-          id: 1,
-          preview: "Explain the key differences between mitosis and meiosis...",
-          text: "Explain the key differences between mitosis and meiosis, focusing on their purposes and outcomes. Include details about chromosome number changes and when each process occurs in organisms.",
-        },
-        {
-          id: 2,
-          preview: "What are the main phases of cellular respiration...",
-          text: "What are the main phases of cellular respiration and where does each occur in the cell? Describe the inputs and outputs of glycolysis, the citric acid cycle, and the electron transport chain.",
-        },
-        {
-          id: 3,
-          preview: "Describe the role of DNA polymerase in DNA replication...",
-          text: "Describe the role of DNA polymerase in DNA replication and explain why it can only add nucleotides in the 5' to 3' direction. Discuss how this directional constraint leads to continuous and discontinuous synthesis on the two strands.",
-        },
-        {
-          id: 4,
-          preview: "How does the structure of a phospholipid bilayer...",
-          text: "How does the structure of a phospholipid bilayer contribute to the selective permeability of cell membranes? Explain the arrangement of hydrophilic heads and hydrophobic tails and how this affects the passage of different molecules.",
-        },
-      ]);
-      setIsGenerating(false);
-    }, 1500);
+    const run = async () => {
+      if (!uploadedFiles.length) {
+        setError("Please upload at least one notes file (PDF, DOCX, or TXT).");
+        return;
+      }
+      if (uploadedFiles.some((f) => f.status === "uploading")) {
+        setError("Please wait for all uploads to finish.");
+        return;
+      }
+      if (uploadedFiles.every((f) => f.status === "error")) {
+        setError("All uploads failed. Please try again.");
+        return;
+      }
+      setError("");
+      setIsGenerating(true);
+      try {
+        const desiredCount = Math.max(5, uploadedFiles.length * 2);
+        const res = await fetch(`${API_BASE}/questions/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text: `Generate ${desiredCount} practice questions from my uploaded notes.`,
+          }),
+        });
+        if (!res.ok) {
+          throw new Error(`Generation failed: ${res.status} ${await res.text()}`);
+        }
+        const data = await res.json();
+        setGeneratedQuestions(parseQuestionsText(data.res));
+        setExpandedQuestion(null);
+      } catch (err) {
+        setError(err.message || "Something went wrong generating questions.");
+      } finally {
+        setIsGenerating(false);
+      }
+    };
+    run();
   };
 
   const handleToggleQuestion = (questionId) => {
@@ -82,11 +174,14 @@ export default function NotesPage() {
       <header className="h-16 border-b flex items-center px-6 md:px-8 lg:px-12">
         <div className="w-full flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" data-testid="button-back">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              data-testid="button-back"
+              onClick={handleBack}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
             <h1 className="text-xl font-semibold tracking-tight">
               Question Generator
             </h1>
@@ -113,11 +208,16 @@ export default function NotesPage() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Upload your notes to generate questions
             </p>
+            {error && (
+              <p className="text-sm text-red-600 mt-2" data-testid="text-error">
+                {error}
+              </p>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {uploadedFiles.map((file, index) => (
-              <Card key={index} className="p-4" data-testid={`card-file-${index}`}>
+            {uploadedFiles.map((item, index) => (
+              <Card key={item.id} className="p-4" data-testid={`card-file-${index}`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -128,10 +228,17 @@ export default function NotesPage() {
                         className="font-medium truncate"
                         data-testid={`text-filename-${index}`}
                       >
-                        {file.name}
+                        {item.file.name}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {(file.size / 1024).toFixed(1)} KB
+                        {(item.file.size / 1024).toFixed(1)} KB
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.status === "uploaded" && "Uploaded"}
+                        {item.status === "uploading" && "Uploading..."}
+                        {item.status === "error" && (
+                          <span className="text-red-600">Upload failed</span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -186,11 +293,14 @@ export default function NotesPage() {
                 className="w-full"
                 size="lg"
                 onClick={handleGenerateQuestions}
-                disabled={isGenerating}
+                disabled={isGenerating || uploading}
                 data-testid="button-generate"
               >
-                {isGenerating ? (
-                  <>Generating Questions...</>
+                {isGenerating || uploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    {uploading ? "Uploading..." : "Generating Questions..."}
+                  </>
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5 mr-2" />

@@ -2,17 +2,19 @@ from io import BytesIO
 from pathlib import Path
 from typing import List
 
+import logging
 import mammoth
 from bs4 import BeautifulSoup
-from fastapi import UploadFile
+import fitz
+from fastapi import HTTPException, UploadFile
 from pdf2image import convert_from_bytes
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 PAGES_DIR = BASE_DIR / "pages"
+logger = logging.getLogger(__name__)
 
 
-async def parse_docx(file: UploadFile):
-    content = await file.read()
+def parse_docx_bytes(content: bytes):
     parsed_content = BytesIO(content)
     result = mammoth.convert_to_html(parsed_content)
     return BeautifulSoup(result.value, "html.parser")
@@ -43,15 +45,41 @@ def extract_leaves(node, path=None):
 
 
 async def split_notes(file: UploadFile) -> List[str]:
-    parsed_html = await parse_docx(file)
+    content = await file.read()
+    filename = (file.filename or "").lower()
 
-    leaves = []
-    path: List[str] = []
+    if filename.endswith(".docx"):
+        logger.info("Parsing DOCX: %s", file.filename)
+        parsed_html = parse_docx_bytes(content)
 
-    for node in parsed_html.find_all(["p", "ul", "ol"], recursive=False):
-        leaves.extend(extract_leaves(node, path))
+        leaves: List[str] = []
+        path: List[str] = []
 
-    return leaves
+        for node in parsed_html.find_all(["p", "ul", "ol"], recursive=False):
+            leaves.extend(extract_leaves(node, path))
+
+        logger.info("Extracted %s leaves from DOCX: %s", len(leaves), file.filename)
+        return leaves
+
+    if filename.endswith(".pdf"):
+        logger.info("Parsing PDF: %s", file.filename)
+        doc = fitz.open(stream=content, filetype="pdf")
+        pages = []
+        for page in doc:
+            text = page.get_text("text").strip()
+            if text:
+                pages.append(text)
+        logger.info("Extracted %s pages from PDF: %s", len(pages), file.filename)
+        return pages
+
+    if filename.endswith(".txt"):
+        logger.info("Parsing TXT: %s", file.filename)
+        text = content.decode("utf-8", errors="ignore")
+        paragraphs = [p.strip() for p in text.split("\n\n") if p.strip()]
+        logger.info("Extracted %s paragraphs from TXT: %s", len(paragraphs), file.filename)
+        return paragraphs
+
+    raise HTTPException(status_code=400, detail="Unsupported file type. Upload DOCX, PDF, or TXT.")
 
 
 async def pdf_to_images(file: UploadFile) -> List[Path]:
