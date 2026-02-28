@@ -42,3 +42,4 @@ Backend secrets live in `backend/app/.env`. The frontend continues calling `http
 - **Frontend:** Next.js, React, TailwindCSS (optional)
 - **Backend:** FastAPI (Python), document parsing, LLM-based generation
 - **Database:** MongoDB
+- **Auth:** Auth0
