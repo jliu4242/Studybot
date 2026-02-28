@@ -2,8 +2,10 @@
 AI-powered question generator from notes and past exams.
 
 ## Overview
-If your notes look like this:
-![alt text](image.png)
+If your notes look like this:  
+
+![alt text](image.png)  
+
 And you realize that other ai powered study websites don't seem to understand your notes when generating questions, StudyBot is made to fully understand and convert notes in this format and past exams into relevant, exam-style practice questions. Notes mode grounds questions strictly in uploaded notes, and exam mode mimics the style and difficulty of prior exams.
 
 ## Project Structure
