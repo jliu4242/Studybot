@@ -6,17 +6,6 @@ HOST ?= 0.0.0.0
 PORT ?= 8000
 VENV ?= .venv
 
-# Choose activation command based on platform.
-ifeq ($(OS),Windows_NT)
-VENVSHELL := powershell -NoExit -ExecutionPolicy Bypass -File "$(VENV)/Scripts/Activate.ps1"
-ACTIVATE_PATH := $(VENV)/Scripts/Activate.ps1
-VENV_PY ?= python
-else
-VENVSHELL := bash -c "source \"$(VENV)/bin/activate\" && exec bash"
-ACTIVATE_PATH := $(VENV)/bin/activate
-VENV_PY ?= python3
-endif
-
 .PHONY: backend backend-run backend-install venv-shell venv-create
 
 backend: backend-run

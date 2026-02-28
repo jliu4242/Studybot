@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api.routes import notes, questions, exams
+from .api.routes import notes, questions, exams, saved
 
 app = FastAPI()
 
@@ -16,6 +16,7 @@ app.add_middleware(
 app.include_router(notes.router)
 app.include_router(questions.router)
 app.include_router(exams.router)
+app.include_router(saved.router)
 
 
 @app.get("/")

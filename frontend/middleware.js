@@ -1,40 +1,42 @@
 import { NextResponse } from "next/server";
-import { auth0 } from "./lib/auth0";
+import { auth0 } from "./src/lib/auth0";
 
 export async function middleware(request) {
-    const authRes = await auth0.middleware(request);
+  const authRes = await auth0.middleware(request);
 
-    // authentication routes — let the middleware handle it
-    if (request.nextUrl.pathname.startsWith("/auth")) {
-        return authRes;
-    }
-
-    // public routes — no need to check for session
-    const publicPaths = new Set(["/", "/notes", "/exam", "/saved"]);
-    if (publicPaths.has(request.nextUrl.pathname)) {
-        return authRes;
-    }
-
-    const { origin } = new URL(request.url);
-    const session = await auth0.getSession();
-
-    // user does not have a session — redirect to login
-    if (!session) {
-        return NextResponse.redirect(`${origin}/auth/login`);
-    }
-
+  // Let Auth0 handle its own routes
+  if (request.nextUrl.pathname.startsWith("/api/auth")) {
     return authRes;
+  }
+
+  // Public routes
+  const publicPaths = new Set(["/", "/notes", "/exam"]);
+  if (publicPaths.has(request.nextUrl.pathname)) {
+    return authRes;
+  }
+
+  // Require auth for saved questions UI
+  if (request.nextUrl.pathname.startsWith("/saved")) {
+    const session = await auth0.getSession(request, authRes);
+    if (!session) {
+      const loginUrl = new URL("/api/auth/login", request.url);
+      loginUrl.searchParams.set("returnTo", request.nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  return authRes;
 }
 
 export const config = {
-    matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico, sitemap.xml, robots.txt (metadata files)
-         * - api (API routes)
-         */
-        "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api).*)",
-    ],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, sitemap.xml, robots.txt (metadata files)
+     * - api (API routes)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api).*)",
+  ],
 };

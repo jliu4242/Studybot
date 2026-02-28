@@ -12,6 +12,8 @@ class Settings:
     def __init__(self):
         self.openai_api_key = os.getenv("OPENAI_API_KEY", "")
         self.mongodb_uri = os.getenv("MONGODB", "")
+        self.auth0_domain = os.getenv("AUTH0_DOMAIN", "")
+        self.auth0_audience = os.getenv("AUTH0_AUDIENCE", "")
 
 
 @lru_cache

@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Upload, Sparkles, Bookmark, X, ChevronRight, Loader2 } from "lucide-react";
+import AuthButtons from "@/components/auth-buttons";
+import { toast } from "@/hooks/use-toast";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -27,6 +29,7 @@ export default function NotesPage() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [generatedQuestions, setGeneratedQuestions] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [expandedQuestion, setExpandedQuestion] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
@@ -165,8 +168,66 @@ export default function NotesPage() {
     setExpandedQuestion(expandedQuestion === questionId ? null : questionId);
   };
 
-  const handleSaveQuestion = (questionId) => {
-    console.log("Saving question:", questionId);
+  const redirectToLogin = () => {
+    window.location.href = `/api/auth/login?returnTo=${encodeURIComponent("/notes")}`;
+  };
+
+  const saveQuestionToApi = async (questionText) => {
+    try {
+      const res = await fetch("/api/saved", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: questionText,
+          mode: "notes",
+          source: uploadedFiles[0]?.file?.name || "notes",
+        }),
+      });
+
+      if (res.status === 401) {
+        redirectToLogin();
+        return false;
+      }
+
+      if (!res.ok) {
+        throw new Error(await res.text());
+      }
+
+      toast({
+        title: "Saved",
+        description: "Question saved to your account.",
+      });
+      return true;
+    } catch (err) {
+      toast({
+        title: "Save failed",
+        description: err?.message || "Unable to save question.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const handleSaveQuestion = async (questionId) => {
+    const question = generatedQuestions.find((q) => q.id === questionId);
+    if (!question) return;
+    setIsSaving(true);
+    await saveQuestionToApi(question.text);
+    setIsSaving(false);
+  };
+
+  const handleSaveAll = async () => {
+    if (!generatedQuestions.length) return;
+    setIsSaving(true);
+    const results = await Promise.all(generatedQuestions.map((q) => saveQuestionToApi(q.text)));
+    const successCount = results.filter(Boolean).length;
+    if (successCount) {
+      toast({
+        title: "Saved questions",
+        description: `Saved ${successCount} question${successCount === 1 ? "" : "s"}.`,
+      });
+    }
+    setIsSaving(false);
   };
 
   return (
@@ -189,12 +250,13 @@ export default function NotesPage() {
               Notes Mode
             </Badge>
           </div>
-          <div>
+          <div className="flex items-center gap-3">
             <Link href="/saved">
                 <Button variant="ghost" data-testid="link-saved-questions">
                 Saved Questions
                 </Button>
             </Link>
+            <AuthButtons returnTo="/notes" />
           </div>
         </div>
       </header>
@@ -318,9 +380,14 @@ export default function NotesPage() {
               Generated Questions
             </h2>
             {generatedQuestions.length > 0 && (
-              <Button variant="outline" data-testid="button-save-all">
+              <Button
+                variant="outline"
+                data-testid="button-save-all"
+                onClick={handleSaveAll}
+                disabled={isSaving}
+              >
                 <Bookmark className="w-4 h-4 mr-2" />
-                Save All
+                {isSaving ? "Saving..." : "Save All"}
               </Button>
             )}
           </div>
@@ -398,6 +465,7 @@ export default function NotesPage() {
                           onClick={() => handleSaveQuestion(expandedQuestion)}
                           data-testid={`button-save-${expandedQuestion}`}
                           className="flex-shrink-0"
+                          disabled={isSaving}
                         >
                           <Bookmark className="w-4 h-4 md:mr-2" />
                           <span className="hidden md:inline">Save</span>

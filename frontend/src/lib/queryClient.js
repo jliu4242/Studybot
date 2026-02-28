@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query";
+
 async function throwIfResNotOk(res) {
     if (!res.ok) {
         const text = (await res.text()) || res.statusText;

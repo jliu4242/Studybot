@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, GraduationCap, ArrowRight } from "lucide-react";
+import AuthButtons from "@/components/auth-buttons";
 
 export default function Page() {
   return (
@@ -11,11 +12,14 @@ export default function Page() {
       <header className="h-16 border-b flex items-center px-6 md:px-8 lg:px-12">
         <div className="mx-auto w-full flex justify-between items-center">
           <h1 className="text-xl font-semibold tracking-tight">StudyBot</h1>
-          <Link href="/saved">
-            <Button variant="ghost" data-testid="link-saved-questions">
-              Saved Questions
-            </Button>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/saved">
+              <Button variant="ghost" data-testid="link-saved-questions">
+                Saved Questions
+              </Button>
+            </Link>
+            <AuthButtons returnTo="/" />
+          </div>
         </div>
       </header>
 
