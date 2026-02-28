@@ -64,7 +64,8 @@ async def generate_questions_from_text(text: str) -> str:
     - base EVERY question strictly on the Notes below
     - generate exactly as many questions as the user asks for
     - make the questions look like test questions. Format them exactly the way an exam would
-    - include the correct answer in a separate section below.
+    - include explanations as to why an answer is wrong from the notes for each answer choice you give.
+    - include the correct answer in a separate section below with an explanation as to why.
 
     Notes:
     \"\"\"{context_text}\"\"\"

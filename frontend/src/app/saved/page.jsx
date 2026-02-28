@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import AuthButtons from "@/components/auth-buttons";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function SavedPage() {
   const [activeTab, setActiveTab] = useState("all");
@@ -35,14 +36,7 @@ export default function SavedPage() {
     if (isLoadingUser) return;
     const fetchSaved = async () => {
       try {
-        const res = await fetch("/api/saved");
-        if (res.status === 401) {
-          router.push(`/api/auth/login?returnTo=${encodeURIComponent("/saved")}`);
-          return;
-        }
-        if (!res.ok) {
-          throw new Error(await res.text());
-        }
+        const res = await apiRequest("GET", "/api/saved");
         const data = await res.json();
         const items = (data.items || []).map((item) => ({
           ...item,
@@ -51,6 +45,10 @@ export default function SavedPage() {
         }));
         setQuestions(items);
       } catch (err) {
+        if (err?.status === 401) {
+          router.push(`/api/auth/login?returnTo=${encodeURIComponent("/saved")}`);
+          return;
+        }
         setError(err.message || "Unable to load saved questions.");
       } finally {
         setLoading(false);

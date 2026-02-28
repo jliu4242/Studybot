@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Upload, Sparkles, Bookmark, X, ChevronRight } from "lucide-react";
 import AuthButtons from "@/components/auth-buttons";
 import { toast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -70,13 +71,7 @@ export default function ExamPage() {
       try {
         const formData = new FormData();
         formData.append("file", uploadedFiles[0]);
-        const res = await fetch(`${API_BASE}/exams/generate`, {
-          method: "POST",
-          body: formData,
-        });
-        if (!res.ok) {
-          throw new Error(`Generation failed: ${res.status} ${await res.text()}`);
-        }
+        const res = await apiRequest("POST", `${API_BASE}/exams/generate`, { body: formData });
         const data = await res.json();
         setGeneratedQuestions(parseQuestionsText(data.res));
         setExpandedQuestion(null);
@@ -99,24 +94,13 @@ export default function ExamPage() {
 
   const saveQuestionToApi = async (questionText) => {
     try {
-      const res = await fetch("/api/saved", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await apiRequest("POST", "/api/saved", {
+        data: {
           question: questionText,
           mode: "exam",
           source: uploadedFiles[0]?.name || "exam",
-        }),
+        },
       });
-
-      if (res.status === 401) {
-        redirectToLogin();
-        return false;
-      }
-
-      if (!res.ok) {
-        throw new Error(await res.text());
-      }
 
       toast({
         title: "Saved",
@@ -129,6 +113,9 @@ export default function ExamPage() {
         description: err?.message || "Unable to save question.",
         variant: "destructive",
       });
+      if (err?.status === 401) {
+        redirectToLogin();
+      }
       return false;
     }
   };

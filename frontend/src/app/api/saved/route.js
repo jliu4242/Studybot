@@ -1,5 +1,6 @@
-import { getAccessToken, withApiAuthRequired } from "@auth0/nextjs-auth0";
 import { NextResponse } from "next/server";
+import { apiRequest } from "@/lib/queryClient";
+import { auth0 } from "@/lib/auth0";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -12,26 +13,37 @@ const forwardResponse = async (res) => {
   });
 };
 
-export const GET = withApiAuthRequired(async () => {
-  const { accessToken } = await getAccessToken();
-  const res = await fetch(`${API_BASE}/saved`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  return forwardResponse(res);
+const handleProxyError = (err) => NextResponse.json(
+  { message: err.body || err.message || "Request failed" },
+  { status: err.status || 500 },
+);
+
+export const GET = auth0.withApiAuthRequired(async (req) => {
+  const { accessToken } = await auth0.getAccessToken(req);
+  try {
+    const res = await apiRequest("GET", `${API_BASE}/saved`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return forwardResponse(res);
+  } catch (err) {
+    return handleProxyError(err);
+  }
 });
 
-export const POST = withApiAuthRequired(async (req) => {
-  const { accessToken } = await getAccessToken();
+export const POST = auth0.withApiAuthRequired(async (req) => {
+  const { accessToken } = await auth0.getAccessToken(req);
   const payload = await req.json();
-  const res = await fetch(`${API_BASE}/saved`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-  return forwardResponse(res);
+  try {
+    const res = await apiRequest("POST", `${API_BASE}/saved`, {
+      data: payload,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return forwardResponse(res);
+  } catch (err) {
+    return handleProxyError(err);
+  }
 });
 
 export const dynamic = "force-dynamic";
