@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 client = OpenAI(api_key=settings.openai_api_key) if settings.openai_api_key else None
 
 
-async def generate_questions_from_text(text: str) -> str:
+async def generate_questions_from_text(text: str, numQuestions: int) -> str:
     if client is None:
         raise HTTPException(status_code=500, detail="OpenAI API key is not configured.")
     if notes_collection is None:
@@ -54,18 +54,29 @@ async def generate_questions_from_text(text: str) -> str:
     scored_docs = list(zip(scores, texts))
 
     scored_docs.sort(key=lambda x: x[0], reverse=True)
-    top_k = min(50, len(scored_docs))
+    top_k = min(15, len(scored_docs))
     top_texts = [text for _, text in scored_docs[:top_k]]
     context_text = "\n\n---\n\n".join(top_texts)
 
-    prompt = f"""You are a helpful tutor that creates questions to help students learn.
-    
-    Rules:
-    - base EVERY question strictly on the Notes below
-    - generate exactly as many questions as the user asks for
-    - make the questions look like test questions. Format them exactly the way an exam would
-    - include explanations as to why an answer is wrong from the notes for each answer choice you give.
-    - include the correct answer in a separate section below with an explanation as to why.
+    prompt = f"""You are a helpful tutor that creates rigorous, exam-style multiple-choice questions.
+
+    Rules (follow this exact structure so questions and explanations are easy to parse):
+    - base every question stem and the correct answer strictly on the Notes below; do not invent new facts for the stem or correct answer.
+    - incorrect options may use general background knowledge, but must be concrete, plausible, and clearly wrong per the notes; keep them the same type of entity as the correct answer (e.g., named diamonds vs. vague categories). Never use list titles, categories, or partial phrases as options.
+    - generate exactly {numQuestions} questions, each with four options labeled A) through D).
+    - each option must be a complete, grammatical statement and mutually exclusive from the others.
+    - for each option, put the explanation on the SAME line after a hyphen, grounded in the notes, explaining why it is correct or incorrect.
+    - for each question, include the correct answer on its own line as: Correct Answer: <letter> - <brief note from the source>.
+    - separate questions with a blank line. Do not add any other sections or commentary.
+    - if Notes are non-empty, you MUST generate questions; NEVER respond with "Unable to generate question from notes."
+
+    Output format for each question (copy exactly):
+    Q<Number>. <question text>
+    A) <option text> - <why correct/incorrect from notes>
+    B) <option text> - <why correct/incorrect from notes>
+    C) <option text> - <why correct/incorrect from notes>
+    D) <option text> - <why correct/incorrect from notes>
+    Correct Answer: <letter> - <brief note from the source>
 
     Notes:
     \"\"\"{context_text}\"\"\"
@@ -77,10 +88,19 @@ async def generate_questions_from_text(text: str) -> str:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a tutor who creates test questions"},
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a meticulous tutor who writes exam-style multiple-choice "
+                        "questions in a strict, machine-parseable format. Use only the provided "
+                        "notes; do not add new facts or speculation. If notes are present, you "
+                        "must produce questions. Follow the requested structure exactly."
+                    ),
+                },
                 {"role": "user", "content": prompt},
             ],
         )
+        print(response.choices[0].message.content.strip())
     except Exception as exc:
         logger.exception("LLM generation failed.")
         raise HTTPException(status_code=500, detail="Failed to generate questions with the language model.") from exc

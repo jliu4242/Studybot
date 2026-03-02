@@ -189,13 +189,16 @@ export default function NotesPage() {
         return;
       }
       setError("");
+      setGeneratedQuestions([]);
+      setExpandedQuestion(null);
+      setSelectedOptions({});
+      setAnsweredOptions({});
       setIsGenerating(true);
       try {
         const res = await apiRequest("POST", `${API_BASE}/questions/generate`, {
           data: {
-            text: `${questionPrompt.trim()} (Generate ${questionCount} questions.)`,
-            prompt: questionPrompt.trim(),
-            count: Number(questionCount),
+            text: questionPrompt.trim(),
+            numQuestions: Number(questionCount),
           },
         });
         const data = await res.json();
@@ -561,11 +564,11 @@ export default function NotesPage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-10">
                                   {options.map((opt, idx) => {
                                     const isSelected = selectedIdx === idx;
-                                    const isCorrect =
-                                      isSelected &&
+                                    const isCorrectChoice =
                                       correctLabel &&
                                       opt.label.toUpperCase() === correctLabel.toUpperCase();
-                                    const isWrong = isSelected && isAnswered && !isCorrect;
+                                    const isCorrect = isAnswered && isCorrectChoice;
+                                    const isWrong = isSelected && isAnswered && !isCorrectChoice;
 
                                     const classes = [
                                       "cursor-pointer border transition-all duration-150",
@@ -608,10 +611,14 @@ export default function NotesPage() {
                                           </div>
                                           <div className="text-sm leading-relaxed flex-1">
                                             <div className="font-medium">{opt.text}</div>
-                                            {isSelected && opt.explanation && (
+                                            {isAnswered && opt.explanation && (
                                               <p
                                                 className={`mt-2 text-sm ${
-                                                  isCorrect ? "text-green-700" : isWrong ? "text-red-700" : ""
+                                                  isCorrect
+                                                    ? "text-green-700"
+                                                    : isWrong
+                                                      ? "text-red-700"
+                                                      : "text-muted-foreground"
                                                 }`}
                                               >
                                                 {opt.explanation}

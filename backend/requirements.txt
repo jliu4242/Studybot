@@ -6,6 +6,7 @@ openai
 httpx<0.28
 numpy
 motor
+dnspython
 python-jose[cryptography]
 beautifulsoup4
 mammoth

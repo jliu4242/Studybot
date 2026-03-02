@@ -18,9 +18,19 @@ const handleProxyError = (err) => NextResponse.json(
   { status: err.status || 500 },
 );
 
+const getAccessTokenOrThrow = async () => {
+  const { token } = await auth0.getAccessToken();
+  if (typeof token !== "string" || !token.trim()) {
+    const err = new Error("Missing access token from Auth0.");
+    err.status = 401;
+    throw err;
+  }
+  return token;
+};
+
 export const GET = auth0.withApiAuthRequired(async (req) => {
-  const { accessToken } = await auth0.getAccessToken(req);
   try {
+    const accessToken = await getAccessTokenOrThrow();
     const res = await apiRequest("GET", `${API_BASE}/saved`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
@@ -31,9 +41,9 @@ export const GET = auth0.withApiAuthRequired(async (req) => {
 });
 
 export const POST = auth0.withApiAuthRequired(async (req) => {
-  const { accessToken } = await auth0.getAccessToken(req);
-  const payload = await req.json();
   try {
+    const accessToken = await getAccessTokenOrThrow();
+    const payload = await req.json();
     const res = await apiRequest("POST", `${API_BASE}/saved`, {
       data: payload,
       headers: {

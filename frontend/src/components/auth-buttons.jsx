@@ -10,34 +10,12 @@ export default function AuthButtons({ returnTo = "/" }) {
 
   const target = useMemo(() => encodeURIComponent(returnTo || "/"), [returnTo]);
 
-  if (isLoading) {
-    return <span className="text-sm text-muted-foreground">Checking session...</span>;
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" asChild>
-          <a href={`${authBase}/login?returnTo=${target}`}>Log in</a>
-        </Button>
-        <Button variant="outline" asChild>
-          <a href={`${authBase}/login?screen_hint=signup&returnTo=${target}`}>Sign up</a>
-        </Button>
-        <Button variant="ghost" asChild>
-          <a href={`${authBase}/login?screen_hint=reset_password&returnTo=${target}`}>Forgot?</a>
-        </Button>
-      </div>
-    );
-  }
+  const loginHref = `${authBase}/login?returnTo=${target}`;
+  const logoutHref = `${authBase}/logout?returnTo=${target}`;
 
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm text-muted-foreground truncate max-w-[12rem]">
-        {user.name || user.email}
-      </span>
-      <Button variant="outline" asChild>
-        <a href={`${authBase}/logout?returnTo=${target}`}>Log out</a>
-      </Button>
-    </div>
+    <Button variant="outline" asChild disabled={isLoading}>
+      <a href={user ? logoutHref : loginHref}>{user ? "Log out" : "Log in"}</a>
+    </Button>
   );
 }
