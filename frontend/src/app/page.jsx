@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, GraduationCap, ArrowRight } from "lucide-react";
+import { FileText, GraduationCap, ArrowRight, NotebookPen, Sparkles } from "lucide-react";
 import AuthButtons from "@/components/auth-buttons";
+import notesExample from "../../public/notes_example.png"
 
 export default function Page() {
   return (
@@ -28,9 +29,6 @@ export default function Page() {
           <div className="max-w-6xl mx-auto px-6 md:px-8 lg:px-12 py-14 md:py-16">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
               <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                  AI-Powered Question Generation
-                </div>
                 <h2 className="text-4xl md:text-5xl font-semibold leading-tight">
                   Turn your notes and exams into practice questions—fast.
                 </h2>
@@ -127,6 +125,65 @@ export default function Page() {
                 </Button>
               </Link>
             </Card>
+          </div>
+        </div>
+
+        <div className="border-t border-b bg-muted/40">
+          <div className="max-w-6xl mx-auto px-6 md:px-8 lg:px-12 py-14 md:py-16 grid grid-cols-1 lg:grid-cols-[1.2fr,0.8fr] gap-10">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+                Built for messy notes
+              </div>
+              <h3 className="text-3xl md:text-4xl font-semibold leading-tight">
+                From hand‑typed outlines to polished practice.
+              </h3>
+              <p className="text-base text-muted-foreground leading-relaxed max-w-3xl">
+                StudyBot is tuned for real student notes—the kind that mix bullets, sub‑bullets, and rough phrasing.
+                We extract structure from dense outlines like the gemstone examples and turn them into clear, answerable questions.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Card className="p-4 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <NotebookPen className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-semibold">Understands hierarchy</p>
+                    <p className="text-sm text-muted-foreground">
+                      Bullets, sub‑bullets, and quick notes stay grouped so generated questions match your outline.
+                    </p>
+                  </div>
+                </Card>
+                <Card className="p-4 flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-semibold">Cleans up typos</p>
+                    <p className="text-sm text-muted-foreground">
+                      Handles imperfect spelling like “diamon distribution” and still generates accurate prompts.
+                    </p>
+                  </div>
+                </Card>
+              </div>
+            </div>
+            <div className="space-y-4">
+              <Card className="overflow-hidden border bg-card shadow-sm">
+                <div className="p-4 border-b bg-muted/60">
+                  <p className="text-sm font-semibold text-muted-foreground">Example notes</p>
+                  <p className="text-base font-semibold">Famous Gemstones outline</p>
+                </div>
+                <div className="p-4">
+                  <img
+                    src="notes_example.png"
+                    alt="Screenshot of gemstone bullet-point notes"
+                    className="w-full rounded-md border shadow-sm"
+                  />
+                </div>
+              </Card>
+              <p className="text-sm text-muted-foreground">
+                Drop in PDFs, DOCX, or plain text—our parser keeps your structure intact so questions stay on-topic.
+              </p>
+            </div>
           </div>
         </div>
       </main>
